@@ -1,0 +1,81 @@
+AddHandler cgi-script s
+
+ExpiresActive off
+
+ErrorDocument 301 "301 Moved Permanently not handled"
+ErrorDocument 302 "302 Found not handled"
+ErrorDocument 303 "303 See Other not handled"
+ErrorDocument 307 "307 Temporary Redirect not handled"
+ErrorDocument 404 "Test Error"
+
+Redirect 301 /javascript/xmlhttprequest/301 http://www.mnot.net/javascript/xmlhttprequest/success.asis
+Redirect 302 /javascript/xmlhttprequest/302 http://www.mnot.net/javascript/xmlhttprequest/success.asis
+Redirect 303 /javascript/xmlhttprequest/303 http://www.mnot.net/javascript/xmlhttprequest/success.asis
+Redirect 307 /javascript/xmlhttprequest/307 http://www.mnot.net/javascript/xmlhttprequest/success.asis
+
+Redirect 301 /javascript/xmlhttprequest/method_301 http://www.mnot.net/javascript/xmlhttprequest/method_echo.s
+Redirect 302 /javascript/xmlhttprequest/method_302 http://www.mnot.net/javascript/xmlhttprequest/method_echo.s
+Redirect 303 /javascript/xmlhttprequest/method_303 http://www.mnot.net/javascript/xmlhttprequest/method_echo.s
+Redirect 307 /javascript/xmlhttprequest/method_307 http://www.mnot.net/javascript/xmlhttprequest/method_echo.s
+
+RewriteEngine on
+RewriteBase /javascript/xmlhttprequest
+
+RewriteRule ^success$ success.asis [L]
+
+RewriteCond %{HTTP:Referer} ^http://www\.mnot\.net/javascript/xmlhttprequest/
+RewriteRule ^check_referer success.asis [L]
+RewriteRule ^check_referer fail [L]
+
+RewriteCond %{HTTP:Accept-Encoding} ^.*gzip.*
+RewriteRule ^check_coding_gzip success.asis [L]
+RewriteRule ^check_coding_gzip fail [L]
+
+RewriteCond %{HTTP:Accept-Encoding} ^.*deflate.*
+RewriteRule ^check_coding_deflate success.asis [L]
+RewriteRule ^check_coding_deflate fail [L]
+
+RewriteCond %{HTTP:Accept-Encoding} ^.*compress.*
+RewriteRule ^check_coding_compress success.asis [L]
+RewriteRule ^check_coding_compress fail [L]
+
+AddEncoding x-gzip xgz
+AddEncoding gzip gz
+AddEncoding x-compress xz
+AddEncoding compress z
+
+RewriteCond %{HTTP:Cookie} ^.*test_set=success.*
+RewriteRule ^check_set_cookie success.asis [L]
+RewriteRule ^check_set_cookie fail [L]
+
+RewriteCond %{HTTP:x-reqnum} 1
+RewriteRule ^check_ims success.asis [L]
+
+RewriteCond %{HTTP:x-reqnum} 2
+RewriteCond %{HTTP:If-Modified-Since} .+
+RewriteRule ^check_ims success.asis [L]
+RewriteRule ^check_ims fail [L]
+
+RewriteCond %{HTTP:x-reqnum} 1
+RewriteRule ^check_inm success.asis [L]
+
+RewriteCond %{HTTP:x-reqnum} 2
+RewriteCond %{HTTP:If-None-Match} .+
+RewriteRule ^check_inm success.asis [L]
+RewriteRule ^check_inm fail [L]
+
+RewriteCond %{HTTP:Cache-Control} .+
+RewriteRule ^check_request_cache_control fail [L]
+RewriteRule ^check_request_cache_control success.asis [L]
+
+RewriteCond %{HTTP:x-reqnum} 1
+RewriteRule ^check_validation success.asis [L]
+
+RewriteCond %{HTTP:x-reqnum} 2
+RewriteRule ^check_validation 304.asis [L]
+
+RewriteCond %{HTTP:x-reqnum} 1
+RewriteRule ^check_fresh fresh.asis [L]
+
+# RewriteCond %{HTTP:x-reqnum} 2
+RewriteRule ^check_fresh fail [L]

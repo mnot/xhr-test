@@ -1,0 +1,6 @@
+DirectoryIndex index
+
+AuthType Basic
+AuthName "test/test"
+AuthUserFile /usr/www/users/mnot/mnot/javascript/xmlhttprequest/test.basic
+Require valid-user

@@ -1,0 +1,477 @@
+<html>
+<head>
+  <title>XMLHttpRequest HTTP Feature Tests</title>
+  <link rel="stylesheet" href="/style.css" type="text/css"/>
+  <style type="text/css">
+    .success { color: green; }
+    .fail { color: red; }
+    @media print {
+        input { display: none; }
+        .instruction { display: none; }
+    }
+    .instruction {
+        color: orange;
+        font-style: italic;
+    }
+  </style>
+  <!--
+  TODO
+    - narrow down testing failures
+      - not automatically handled in method redirect
+    - async / sync differences in other places?
+    - summary / results storage
+  -->
+</head>
+<body>
+
+<script type="text/javascript">
+
+alert("If your browser asks you permission to follow a redirect when loading this page, please allow it.");
+
+/* Common functions */
+
+function getReq() {
+    var req = false;
+    if(window.XMLHttpRequest) {
+        try {
+            req = new XMLHttpRequest();
+        } catch(e) {
+            req = false;
+        }
+    } else if(window.ActiveXObject) {
+        try {
+            req = new ActiveXObject("Microsoft.XMLHTTP");
+        } catch(e) {
+            req = false;
+        }
+    }
+    if (! req) {
+        alert("Your browser does not support XMLHttpRequest.");
+    }
+    return req;
+}
+
+function writeResults(test_id, success, error_msg) {
+    target = document.getElementById(test_id)
+    if (success) {
+        target.innerHTML = "success";
+        target.className = "success";
+    } else {
+        var message = error_msg ? "(" + error_msg + ")" : ""
+        target.innerHTML = "fail " + message;
+        target.className = "fail";
+    }
+}
+
+function testUriSuccess(uri, test_id) {
+    var req = getReq();
+    var success = true;
+    var error_msg = "";
+    try {
+        req.open("GET", uri, false);
+        req.send("");
+    } catch (e) {
+        success = false;
+        error_msg = "Error: " + e;
+    }
+    if (req.status != 200 && req.status != 304) {  // don't want to catch caching problems here...
+        success = false;
+        error_msg = "Status Code: " + req.status;
+    }
+    if (req.responseText != "success") {
+        success = false;
+        if (req.responseText != "fail") {
+            error_msg = "Content: " + req.responseText;
+        }
+    }
+    writeResults(test_id, success, error_msg);
+}
+</script>
+
+<h1>XMLHttpRequest Tests</h1>
+
+<p class="navtop"><span class="detail">nearby:</span> <a href="cache.html">XMLHttpRequest
+Caching Tests</a></p>
+
+<p class="version">2006-04-17</p>
+
+
+<p class="intro">This is a set of functional tests for <a class="offsite" href="http://en.wikipedia.org/wiki/XMLHttpRequest">client-side
+HTTP libraries</a> (e.g., XMLHttpRequest and Microsoft.XMLHTTP).</p>
+
+<p>This is <em>not</em> a compliance or conformance test suite; an implementation can fail many of the tests here and still
+be HTTP conformant. Instead, the idea is to show what HTTP mechanisms different implementations support, and how
+they support them, since many aspects of these libraries are underdefined.</p>
+
+<p>Each group of tests explains what is being tested and what the implications of failure are. Although many
+of the tests are automated, some may require user interaction, via a "run test" button. Be sure to follow any 
+<span class="instruction">instructions</span> carefully.</p>
+
+<p><em>For discussion or to leave feedback, see <a href="http://www.mnot.net/blog/2006/01/23/test_xmlhttprequest">the announcment</a>.</em></p>
+
+<p class="banner">Testing 
+<script type="text/javascript">
+  document.write(navigator.userAgent);
+</script>
+</p>
+
+<h2>URIs</h2>
+<p><strong>Are relative URIs resolved correctly?</strong></p>
+<p>Relative references can contain "<a class="offsite" href="http://www.gbiv.com/protocols/uri/rfc/rfc3986.html#relative-dot-segments">dot segments</a>" that need to be
+removed before using the URI to send a request. Implementations that fail these tests may send 
+incorrect requests.</p>
+<ol>
+<li>resource: <span id="relative_bare"> </span></li>
+<li>./resource: <span id="relative_single_dot"> </span></li>
+<li>../resource: <span id="relative_double_dot"> </span></li>
+</ol>
+<script type="text/javascript">
+testUriSuccess("success", "relative_bare");
+testUriSuccess("./success", "relative_single_dot");
+testUriSuccess("../xmlhttprequest/success", "relative_double_dot");
+</script>
+
+<h2>Method</h2>
+<p>HTTP isn't just GET and POST; other methods ar defined by RFC2616 and other specifications, and should
+be available to Web authors. Additionally, methods are case-sensitive, and therefore the case should be preserved.</p>
+<p><strong>What Methods Are Available?</strong></p>
+<ol>
+<li>GET: <span id="method_GET"> </span></li>
+<li>POST: <span id="method_POST"> </span></li>
+<li>PUT: <span id="method_PUT"> </span></li>
+<li>DELETE: <span id="method_DELETE"> </span></li>
+<li>FOO: <span id="method_FOO"> </span></li>
+<li>Foo: <span id="method_Foo"> </span></li>
+</ol>
+
+<script type="text/javascript">
+function testMethod(method, test_id) {
+    var req = getReq();
+    var success = true;
+    var error_msg = "";
+    try {
+        req.open(method, "method_echo.s?" + test_id, false);
+        req.send("");
+    } catch (e) {
+        success = false;
+        error_msg = "Error: " + e;
+    }
+    if (req.status != 200 && req.status != 304) {  // don't want to catch caching problems here...
+        success = false;
+        error_msg = "Status Code: " + req.status;
+    }
+    if (req.responseText != method) {
+        success = false;
+        error_msg = "Method sent: " + req.responseText;
+    }
+    writeResults(test_id, success, error_msg);
+}
+
+testMethod("GET", "method_GET");
+testMethod("POST", "method_POST");
+testMethod("PUT", "method_PUT");
+testMethod("DELETE", "method_DELETE");
+testMethod("FOO", "method_FOO");
+testMethod("Foo", "method_Foo");
+</script>
+
+<h2>Redirects</h2>
+<p><strong>Are redirects handled by the implementation, or passed through?</strong></p>
+<p>HTTP <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3" class="offsite">allows</a>
+user-agents to automatically handle some redirect response status codes, so that the
+user doesn't have to make a separate request. Implementations that fail these tests don't do this, and
+will require calling code to handle redirects themselves.</p>
+<ol>
+<li>301 Moved Permanently: <span id="simple_301"> </span></li>
+<li>302 Found: <span id="simple_302"> </span></li>
+<li>303 See Other: <span id="simple_303"> </span></li>
+<li>307 Temporary Redirect: <span id="simple_307"> </span></li>
+</ol>
+<script type="text/javascript">
+testUriSuccess("301", "simple_301");
+testUriSuccess("302", "simple_302");
+testUriSuccess("303", "simple_303");
+testUriSuccess("307", "simple_307");
+</script>
+
+<p><strong>Are methods preserved correctly?</strong></p> 
+<p>If an implementation automatically handles a redirect, it must use the appropriate request method.
+HTTP <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3" class="offsite">requires</a>
+receivers of some redirects to change the request method to GET; others are required to use
+the original method. Implementations that fail these tests will send redirected requests with the wrong 
+HTTP methods.
+</p>
+<ol>
+<li>301 Moved Permanently, POST: <span id="method_301_POST"> </span></li>
+<li>301 Moved Permanently, GET: <span id="method_301_GET"> </span></li>
+<li>301 Moved Permanently, PUT: <span id="method_301_PUT"> </span></li>
+<li>301 Moved Permanently, DELETE: <span id="method_301_DELETE"> </span></li>
+<li>302 Found, POST: <span id="method_302_POST"> </span></li>
+<li>302 Found, GET: <span id="method_302_GET"> </span></li>
+<li>302 Found, PUT: <span id="method_302_PUT"> </span></li>
+<li>302 Found, DELETE: <span id="method_302_DELETE"> </span></li>
+<li>303 See Other, POST: <span id="method_303_POST"> </span></li>
+<li>303 See Other, GET: <span id="method_303_GET"> </span></li>
+<li>303 See Other, PUT: <span id="method_303_PUT"> </span></li>
+<li>303 See Other, DELETE: <span id="method_303_DELETE"> </span></li>
+<li>307 Temporary Redirect, POST: <span id="method_307_POST"> </span></li>
+<li>307 Temporary Redirect, GET: <span id="method_307_GET"> </span></li>
+<li>307 Temporary Redirect, PUT: <span id="method_307_PUT"> </span></li>
+<li>307 Temporary Redirect, DELETE: <span id="method_307_DELETE"> </span></li>
+</ol>
+<script type="text/javascript">
+function testMethodRedirect(uri, orig_method, redir_method, test_id) {
+    var req = getReq();
+    var success = true;
+    var error_msg = "";
+    try {
+        req.open(orig_method, uri, false);
+        req.send("");
+    } catch (e) {
+        success = false;
+        error_msg = "Error: " + e;
+    }
+    if (req.status != 200 && req.status != 304) {  // don't want to catch caching problems here
+        success = false;
+        error_msg = "Status Code: " + req.status;
+    }
+    if (req.responseText != redir_method) {
+        success = false;
+        if (req.responseText == req.responseText.toUpperCase()) {
+            error_msg = "Redirected using " + req.responseText + ", expected " + redir_method;
+        } else {
+            error_msg = req.responseText;
+        }
+    }
+    writeResults(test_id, success, error_msg);
+}
+testMethodRedirect("method_301", "POST", "POST", "method_301_POST");
+testMethodRedirect("method_301", "GET", "GET", "method_301_GET");
+testMethodRedirect("method_301", "PUT", "PUT", "method_301_PUT");
+testMethodRedirect("method_301", "DELETE", "DELETE", "method_301_DELETE");
+
+testMethodRedirect("method_302", "POST", "POST", "method_302_POST");
+testMethodRedirect("method_302", "GET", "GET", "method_302_GET");
+testMethodRedirect("method_302", "PUT", "PUT", "method_302_PUT");
+testMethodRedirect("method_302", "DELETE", "DELETE", "method_302_DELETE");
+
+testMethodRedirect("method_303", "POST", "GET", "method_303_POST");
+testMethodRedirect("method_303", "GET", "GET", "method_303_GET");
+testMethodRedirect("method_303", "PUT", "GET", "method_303_PUT");
+testMethodRedirect("method_303", "DELETE", "GET", "method_303_DELETE");
+
+testMethodRedirect("method_307", "POST", "POST", "method_307_POST");
+testMethodRedirect("method_307", "GET", "GET", "method_307_GET");
+testMethodRedirect("method_307", "PUT", "PUT", "method_307_PUT");
+testMethodRedirect("method_307", "DELETE", "DELETE", "method_307_DELETE");
+</script>
+</ol>
+
+<p><strong>Are redirects automated appropriately?</strong></p>
+<p>Implementations that handle redirects automatically are 
+<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3" class="offsite">required</a> 
+by HTTP to force user intervention before some combinations of request method and redirect status code are 
+handled automatically. Those that fail these test do not do so, and therefore may cause
+dangerous requests to be made.</p>
+<p>For example, if Alice's browser that doesn't check with her before redirecting a POST to another server,
+this could be exploited to change her data on a third-party server (e.g., her bank) without her knowledge.</p>
+<script type="text/javascript">
+function testAutomatedRedirect(method, code, expected) {
+    var req = getReq();
+    var success = true;
+    var error_msg = "";
+    var test_id = code + method;
+    try {
+        req.open(method, code, false);
+        req.send("");
+    } catch (e) {
+        success = false;
+        error_msg = "Error: " + e;
+    }
+    if (req.status == code.toString()) {
+        success = false;
+        error_msg = code + " not automatically handled.";
+    } else {
+        actual = confirm("Confirm if, after you ran the test, did your User-Agent ask for permission to redirect.");
+        if (actual != expected) {
+            success = false;
+            error_msg = "wrong behaviour";
+        }
+    }
+    writeResults(test_id, success, error_msg);
+}
+</script>
+<ol>
+<li><form action="javascript:testAutomatedRedirect('GET', '301', false);">GET to a 301 Permanent Redirect: <input type="submit" value="run test"/> <span id="301GET"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('POST', '301', true);">POST to a 301 Permanent Redirect: <input type="submit" value="run test"/> <span id="301POST"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('PUT', '301', true);">PUT to a 301 Permanent Redirect: <input type="submit" value="run test"/> <span id="301PUT"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('DELETE', '301', true);">DELETE to a 301 Permanent Redirect: <input type="submit" value="run test"/> <span id="301DELETE"> </span></form></li>
+
+<li><form action="javascript:testAutomatedRedirect('GET', '302', false);">GET to a 302 Found: <input type="submit" value="run test"/> <span id="302GET"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('POST', '302', true);">POST to a 302 Found: <input type="submit" value="run test"/> <span id="302POST"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('PUT', '302', true);">PUT to a 302 Found: <input type="submit" value="run test"/> <span id="302PUT"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('DELETE', '302', true);">DELETE to a 302 Found: <input type="submit" value="run test"/> <span id="302DELETE"> </span></form></li>
+
+<li><form action="javascript:testAutomatedRedirect('GET', '303', false);">GET to a 303 See Other: <input type="submit" value="run test"/> <span id="303GET"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('POST', '303', false);">POST to a 303 See Other: <input type="submit" value="run test"/> <span id="303POST"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('PUT', '303', false);">PUT to a 303 See Other: <input type="submit" value="run test"/> <span id="303PUT"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('DELETE', '303', false);">DELETE to a 303 See Other: <input type="submit" value="run test"/> <span id="303DELETE"> </span></form></li>
+
+<li><form action="javascript:testAutomatedRedirect('GET', '307', false);">GET to a 307 Temporary Redirect: <input type="submit" value="run test"/> <span id="307GET"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('POST', '307', true);">POST to a 307 Temporary Redirect: <input type="submit" value="run test"/> <span id="307POST"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('PUT', '307', true);">PUT to a 307 Temporary Redirect: <input type="submit" value="run test"/> <span id="307PUT"> </span></form></li>
+<li><form action="javascript:testAutomatedRedirect('DELETE', '307', true);">DELETE to a 307 Temporary Redirect: <input type="submit" value="run test"/> <span id="307DELETE"> </span></form></li>
+</ol>
+
+
+<h2>Authentication</h2>
+
+<script type="text/javascript">
+function testAuth(uri, expected, async) {
+    var req = getReq();
+    var success = true;
+    var error_msg = "";
+    runtest = function() {
+        if (req.status == 401 && (! expected)) {
+            success = false;
+            error_msg = "401 Unauthorized was passed through.";
+        } else {
+            actual = confirm("Confirm if, after you ran the test, did your User-Agent asked for authentication.");
+            if (actual != expected) {
+                success = false;
+                error_msg = "wrong behaviour (response code " + req.status + " " + req.statusText + ")";
+            }
+            if ((! expected) && req.responseText != "success") { 
+                success = false;
+                error_msg = "incorrect content returned: " + req.responseText;
+            }
+        }
+        var async_string = async ? "async" : "sync";
+        var test_id = uri + "_" + async_string;
+        writeResults(test_id, success, error_msg);
+    }
+    if (async) {
+        req.onreadystatechange = function() {
+            if (req.readyState == 4) {
+                runtest();
+            }
+        }
+    }
+    error = false;
+    try {
+        req.open("GET", uri + "/", async);
+        req.send("");
+    } catch (e) {
+        error = true;  // doesn't go through writeResults
+        target.innerHTML = "fail (Error: " + e + ")";
+        target.className = "fail";
+    }
+    if ((! async) && (! error)) {
+        runtest();
+    }
+}
+</script>
+
+<p><strong>Is authentication automatically populated?</strong></p>
+<p>When the user-agent has already established HTTP authentication credentials for a resource, 
+will it automatically use them for requests? 
+Implementations that fail these tests won't automatically supply authentication information for requests, even if the user is already authenticated.</p>
+<p class="instruction">Follow <a href="auth_setup" target="_new">this link</a> before running the test, supplying a username of "test" and a password of "test" when challenged.</p>
+<ol>
+<li><form action="javascript:testAuth('auth_known', false, false);">Sync: <input type="submit" value="run test"/> <span id="auth_known_sync"> </span></form></li>
+<li><form action="javascript:testAuth('auth_known', false, true);">Async: <input type="submit" value="run test"/> <span id="auth_known_async"> </span></form></li>
+</ol>
+
+<p><strong>Does unhandled authentication pop up a dialog?</strong></p>
+<p>When the user-agent has not established HTTP authentication credentials for a resource, will it prompt the user for them?
+Implementations that fail these tests will require that the user is authenticated before making any requests.</p>
+<p class="instruction">When running this test, cancel out of any authentication dialog that is presented.</p>
+<ol>
+<li><form action="javascript:testAuth('auth_unknown', true, false);">Sync: <input type="submit" value="run test"/> <span id="auth_unknown_sync"> </span></form></li>
+<li><form action="javascript:testAuth('auth_unknown', true, true);">Async: <input type="submit" value="run test"/> <span id="auth_unknown_async"> </span></form></li>
+</ol>
+
+<h2>Referer</h2>
+<p><strong>Is the Referer request header set?</strong></p>
+<p>Some Web applications use the 
+<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.36" class="offsite">referer header</a>
+for access control, site statistics, etc. While HTTP does not require that it be sent, implementations that
+fail this test will rule out using the referer header for such purposes.</p>
+<ol>
+<li>Referer: <span id="check_referer"> </span></li>
+</ol>
+<script type="text/javascript">
+testUriSuccess("check_referer", "check_referer");
+</script>
+</ol>
+
+
+<h2>Cookies</h2>
+<p><strong>Are Set-Cookie headers in responses stored and resent later?</strong></p>
+<p>Implementations that fail this test won't interoperate with servers that use <a href="http://www.ietf.org/rfc/rfc2965.txt" class="offsite">cookies</a> to maintain state.</p>
+
+<p class="instruction">Restart your browser or remove cookies in this domain before reloading this test.</p>
+<ol>
+<li>Set-Cookie: <span id="cookie_set"> </span></li>
+</ol>
+<script type="text/javascript">
+var req = getReq();
+try {
+    req.open("GET", "set_cookie/", false);
+    req.send("");
+} catch (e) {
+    document.write("Test Error.");
+}
+testUriSuccess("check_set_cookie", "cookie_set");
+</script>
+
+<h2>Content-Coding</h2>
+<p><strong>Is the Accept-Encoding request header set?</strong></p>
+<p>Content-coding allows representations to be compressed, saving bandwidth and reducing 
+end-user perceived latency. Implementations that fail these tests do not <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.3" class="offsite">advertise</a> themselves
+as being capable of handling content-codings to the server.</p>
+<ol>
+<li>gzip: <span id="accept_gzip"> </span></li>
+<li>deflate: <span id="accept_deflate"> </span></li>
+<li>compress: <span id="accept_compress"> </span></li>
+</ol>
+<script type="text/javascript">
+testUriSuccess("check_coding_gzip", "accept_gzip");
+testUriSuccess("check_coding_deflate", "accept_deflate");
+testUriSuccess("check_coding_compress", "accept_compress");
+</script>
+</ol>
+
+
+<p><strong>Are content-coded responses decoded by the implementation?</strong></p>
+<p>Implementations that fail these tests do not automatically decode content-coded responses,
+requiring special handling (often, ruling out the use of content-coding altogether).</p>
+
+<ol>
+<li>gzip: <span id="decode_gzip"> </span></li>
+<li>x-gzip: <span id="decode_xgzip"> </span></li>
+<li>compress: <span id="decode_compress"> </span></li>
+<li>x-compress: <span id="decode_xcompress"> </span></li>
+</ol>
+<script type="text/javascript">
+testUriSuccess("coding.gz.txt", "decode_gzip");
+testUriSuccess("coding.xgz.txt", "decode_xgzip");
+testUriSuccess("coding.z.txt", "decode_compress");
+testUriSuccess("coding.xz.txt", "decode_xcompress");
+</script>
+
+
+
+<!--Creative Commons License-->
+<p class="button"><a rel="license" href="http://creativecommons.org/licenses/by-sa/2.5/"><img alt="Creative Commons License" border="0" src="http://creativecommons.org/images/public/somerights20.png"/></a></p>
+<!--/Creative Commons License-->
+<!-- <rdf:RDF xmlns="http://web.resource.org/cc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+		<Work rdf:about="">
+			<license rdf:resource="http://creativecommons.org/licenses/by-sa/2.5/" />
+	<dc:type rdf:resource="http://purl.org/dc/dcmitype/Text" />
+		</Work>
+		<License rdf:about="http://creativecommons.org/licenses/by-sa/2.5/"><permits rdf:resource="http://web.resource.org/cc/Reproduction"/><permits rdf:resource="http://web.resource.org/cc/Distribution"/><requires rdf:resource="http://web.resource.org/cc/Notice"/><requires rdf:resource="http://web.resource.org/cc/Attribution"/><permits rdf:resource="http://web.resource.org/cc/DerivativeWorks"/><requires rdf:resource="http://web.resource.org/cc/ShareAlike"/></License></rdf:RDF> 
+-->
+		
+</body>
+</html>

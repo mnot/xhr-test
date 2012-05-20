@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>XMLHttpRequest Caching Tests</title>
+	<!-- link rel="stylesheet" type="text/css" href="/style.css"/ -->
+  <style type="text/css">
+    .success { color: green; }
+    .fail { color: red; }
+    @media print {
+        input { display: none; }
+        .instruction { display: none; }
+    }
+    .instruction {
+        color: orange;
+        font-style: italic;
+    }
+  </style>
+  </head>
+<body>
+
+
+<script type="text/javascript">
+function getReq() {
+    var req = false;
+    if(window.XMLHttpRequest) {
+        try {
+            req = new XMLHttpRequest();
+        } catch(e) {
+            req = false;
+        }
+    } else if(window.ActiveXObject) {
+        try {
+            req = new ActiveXObject("Microsoft.XMLHTTP");
+        } catch(e) {
+            req = false;
+        }
+    }
+    if (! req) {
+        alert("Your browser does not support XMLHttpRequest.");
+    }
+    return req;
+}
+
+function writeResults(test_id, success, error_msg) {
+    target = document.getElementById(test_id);
+//    results = document.getElementById("results");
+//    results.innerHTML += test_id + ": ";
+    if (success) {
+        target.innerHTML = "success";
+        target.className = "success";
+//        results.innerHTML += " PASS";
+    } else {
+        var message = error_msg ? "(" + error_msg + ")" : ""
+        target.innerHTML = "fail " + message;
+        target.className = "fail";
+//        results.innerHTML += " FAIL, " + error_msg;
+    }
+//    results.innerHTML += "<br>";
+}
+
+</script>
+
+
+<p class="banner">Testing 
+<script type="text/javascript">
+  document.write(navigator.userAgent);
+</script>
+</p>
+
+<ul>
+<li>test: <span id="new_invalid"> </span></li>
+</ul>
+
+<script type="text/javascript">
+
+function getInvalidatingUri(method, uri, group) {
+    var ic = document.cookie.match('invalidate_' + group + '=(.+?)(;|$)');
+    var i;
+    var exp = new Date("December 31, 2023");
+    if (ic) {
+        i = ic[1];
+    } else {
+        var d = new Date();
+        i = d.valueOf();
+        document.cookie = "invalidate_" + group + "=" + i + ";path=/;expires=" + exp.toGMTString();
+    };
+    if (method != "GET") {
+        var d = new Date();
+        i = d.valueOf();
+        document.cookie = "invalidate_" + group + "=" + i + ";path=/;expires=" + exp.toGMTString();
+    }
+    return uri + "?" + i;
+}
+
+function testNewInvalidation(method, test_id, fail_text) {
+    var req = getReq();
+    var success = true;
+    var error_msg = "";
+    try {
+        var uri = getInvalidatingUri('GET', "check_cache_invalidate.s", 'test');
+        req.open("GET", uri, false);
+        req.setRequestHeader("x-reqnum", "1");
+        req.send("");
+        var uri = getInvalidatingUri(method, "check_cache_invalidate.s", 'test');
+        req.open(method, uri, false);
+        req.setRequestHeader("x-reqtype", 'Request-URI');
+        req.setRequestHeader("x-uri", uri);
+        req.send("");
+        var uri = getInvalidatingUri('GET', "check_cache_invalidate.s", 'test');
+        req.open("GET", uri, false);
+        req.setRequestHeader("x-reqnum", "2");
+        req.send("");
+        var uri = getInvalidatingUri('GET', "check_cache_invalidate.s", 'test');
+        req.open("GET", uri, false);
+        req.setRequestHeader("x-reqnum", "3");
+        req.send("");
+    } catch (e) {
+        success = false;
+        error_msg = "Error: " + e;
+    }
+    if (success && req.status != 200) {
+        success = false;
+        error_msg = "Status code:" + req.status;
+    }
+    if (success && req.responseText == "1") {
+        success = false;
+        error_msg = fail_text;
+    }
+    if (success && req.responseText == "3") {
+        success = false;
+        error_msg = "GET not cached";
+    }
+    if (success && req.responseText != "2") {
+        success = false;
+        error_msg = "Test error: " + req.responseText;
+    }
+    writeResults(test_id, success, error_msg);
+}
+testNewInvalidation("POST", "new_invalid", "nope!");
+
+</script>
+</body>
+</html>

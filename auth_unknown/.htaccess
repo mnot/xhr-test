@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "Unknown Auth"
+AuthUserFile /usr/www/users/mnot/mnot/javascript/xmlhttprequest/test.basic
+Require user asdfasdfasdfasdfasdfasdfawerfasdfawef
