@@ -159,17 +159,22 @@ function testMethod(method, test_id) {
     try {
         req.open(method, "method_echo.s?" + test_id, false);
         req.send("");
+        if (req.status != 200 && req.status != 304) {  // don't want to catch caching problems here...
+            success = false;
+            error_msg = "Status Code: " + req.status;
+        }
+        var wire_method = req.getResponseHeader('x-method');
+        if (!wire_method) {
+            success = false;
+            error_msg = "Test execution problem: expected response header field ('x-method') missing.";
+        }
+        if (success && wire_method != method) {
+            success = false;
+            error_msg = "Method sent: " + req.responseText;
+        }
     } catch (e) {
         success = false;
         error_msg = "Error: " + e;
-    }
-    if (req.status != 200 && req.status != 304) {  // don't want to catch caching problems here...
-        success = false;
-        error_msg = "Status Code: " + req.status;
-    }
-    if (req.responseText != method) {
-        success = false;
-        error_msg = "Method sent: " + req.responseText;
     }
     writeResults(test_id, success, error_msg);
 }
@@ -241,26 +246,33 @@ function testMethodRedirect(status, orig_method, redir_method, test_id) {
     try {
         req.open(orig_method, "method_" + status, false);
         req.send("");
+
+        if (req.status == status) {
+            success = false;
+            error_msg = "Unhandled " + status;
+        }
+        if (req.status != 200 && req.status != 304) {  // don't want to catch caching problems here
+            success = false;
+            error_msg = "Status Code: " + req.status;
+        }
+    
+        var wire_method = req.getResponseHeader('x-method');
+        if (!wire_method) {
+            success = false;
+            error_msg = "Test execution problem: expected response header field ('x-method') missing.";
+        }
+        
+        if (success && wire_method != redir_method) {
+            success = false;
+            if (wire_method == wire_method.toUpperCase()) {  // assumes uppercase method!
+                error_msg = "Redirected using " + wire_method + ", expected " + redir_method;
+            } else {
+                error_msg = req.responseText;
+            }
+        }
     } catch (e) {
         success = false;
         error_msg = "Error: " + e;
-    }
-    if (req.status == status) {
-        success = false;
-        error_msg = "Unhandled " + status;
-    }
-    if (req.status != 200 && req.status != 304) {  // don't want to catch caching problems here
-        success = false;
-        error_msg = "Status Code: " + req.status;
-    }
-    var wire_method = req.getResponseHeader('x-method');
-    if (wire_method != redir_method) {
-        success = false;
-        if (wire_method == wire_method.toUpperCase()) {  // assumes uppercase method!
-            error_msg = "Redirected using " + wire_method + ", expected " + redir_method;
-        } else {
-            error_msg = req.responseText;
-        }
     }
     writeResults(test_id, success, error_msg);
 }
