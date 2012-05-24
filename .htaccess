@@ -8,15 +8,15 @@ ErrorDocument 303 "303 See Other not handled"
 ErrorDocument 307 "307 Temporary Redirect not handled"
 ErrorDocument 404 "Test Error"
 
-Redirect 301 /javascript/xmlhttprequest/301 http://www.mnot.net/javascript/xmlhttprequest/success.asis
-Redirect 302 /javascript/xmlhttprequest/302 http://www.mnot.net/javascript/xmlhttprequest/success.asis
-Redirect 303 /javascript/xmlhttprequest/303 http://www.mnot.net/javascript/xmlhttprequest/success.asis
-Redirect 307 /javascript/xmlhttprequest/307 http://www.mnot.net/javascript/xmlhttprequest/success.asis
+Redirect 301 /javascript/xmlhttprequest/301 /javascript/xmlhttprequest/success.asis
+Redirect 302 /javascript/xmlhttprequest/302 /javascript/xmlhttprequest/success.asis
+Redirect 303 /javascript/xmlhttprequest/303 /javascript/xmlhttprequest/success.asis
+Redirect 307 /javascript/xmlhttprequest/307 /javascript/xmlhttprequest/success.asis
 
-Redirect 301 /javascript/xmlhttprequest/method_301 http://www.mnot.net/javascript/xmlhttprequest/method_echo.s
-Redirect 302 /javascript/xmlhttprequest/method_302 http://www.mnot.net/javascript/xmlhttprequest/method_echo.s
-Redirect 303 /javascript/xmlhttprequest/method_303 http://www.mnot.net/javascript/xmlhttprequest/method_echo.s
-Redirect 307 /javascript/xmlhttprequest/method_307 http://www.mnot.net/javascript/xmlhttprequest/method_echo.s
+Redirect 301 /javascript/xmlhttprequest/method_301 /javascript/xmlhttprequest/method_echo.s
+Redirect 302 /javascript/xmlhttprequest/method_302 /javascript/xmlhttprequest/method_echo.s
+Redirect 303 /javascript/xmlhttprequest/method_303 /javascript/xmlhttprequest/method_echo.s
+Redirect 307 /javascript/xmlhttprequest/method_307 /javascript/xmlhttprequest/method_echo.s
 
 RewriteEngine on
 RewriteBase /javascript/xmlhttprequest
