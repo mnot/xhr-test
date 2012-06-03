@@ -95,7 +95,7 @@ function testUriSuccess(uri, test_id) {
 <p class="navtop"><span class="detail">nearby:</span> <a href="cache.html">XMLHttpRequest
 Caching Tests</a></p>
 
-<p class="version">2012-05-23</p>
+<p class="version">2012-06-02</p>
 
 
 <p class="intro">This is a set of functional tests for <a class="offsite" href="http://en.wikipedia.org/wiki/XMLHttpRequest">client-side
@@ -109,7 +109,7 @@ they support them, since many aspects of these libraries are underdefined.</p>
 of the tests are automated, some may require user interaction, via a "run test" button. Be sure to follow any 
 <span class="instruction">instructions</span> carefully.</p>
 
-<p><em>For discussion or to leave feedback, see <a href="http://www.mnot.net/blog/2006/01/23/test_xmlhttprequest">the announcment</a>.</em></p>
+<p><em>For discussion or to leave feedback, see <a href="http://www.mnot.net/blog/2006/01/23/test_xmlhttprequest">the announcement</a>.</em></p>
 
 
 <p class="banner">Testing 
@@ -221,26 +221,26 @@ HTTP methods.
 <a href="http://trac.tools.ietf.org/html/draft-ietf-httpbis-p2-semantics-19#section-7.3.3" class="offsite">302</a>.
 </p>
 <ol>
-<li>301 Moved Permanently, POST: <span id="method_301_POST"> </span></li>
-<li>301 Moved Permanently, GET: <span id="method_301_GET"> </span></li>
-<li>301 Moved Permanently, HEAD: <span id="method_301_HEAD"> </span></li>
-<li>301 Moved Permanently, PUT: <span id="method_301_PUT"> </span></li>
-<li>301 Moved Permanently, DELETE: <span id="method_301_DELETE"> </span></li>
-<li>302 Found, POST: <span id="method_302_POST"> </span></li>
-<li>302 Found, GET: <span id="method_302_GET"> </span></li>
-<li>302 Found, HEAD: <span id="method_302_HEAD"> </span></li>
-<li>302 Found, PUT: <span id="method_302_PUT"> </span></li>
-<li>302 Found, DELETE: <span id="method_302_DELETE"> </span></li>
-<li>303 See Other, POST: <span id="method_303_POST"> </span></li>
-<li>303 See Other, GET: <span id="method_303_GET"> </span></li>
-<li>303 See Other, HEAD: <span id="method_303_HEAD"> </span></li>
-<li>303 See Other, PUT: <span id="method_303_PUT"> </span></li>
-<li>303 See Other, DELETE: <span id="method_303_DELETE"> </span></li>
-<li>307 Temporary Redirect, POST: <span id="method_307_POST"> </span></li>
-<li>307 Temporary Redirect, GET: <span id="method_307_GET"> </span></li>
-<li>307 Temporary Redirect, HEAD: <span id="method_307_HEAD"> </span></li>
-<li>307 Temporary Redirect, PUT: <span id="method_307_PUT"> </span></li>
-<li>307 Temporary Redirect, DELETE: <span id="method_307_DELETE"> </span></li>
+<li id="mr.POST.301">301 Moved Permanently, POST: <span id="method_301_POST"> </span></li>
+<li id="mr.GET.301">301 Moved Permanently, GET: <span id="method_301_GET"> </span></li>
+<li id="mr.HEAD.301">301 Moved Permanently, HEAD: <span id="method_301_HEAD"> </span></li>
+<li id="mr.PUT.301">301 Moved Permanently, PUT: <span id="method_301_PUT"> </span></li>
+<li id="mr.DELETE.301">301 Moved Permanently, DELETE: <span id="method_301_DELETE"> </span></li>
+<li id="mr.POST.302">302 Found, POST: <span id="method_302_POST"> </span></li>
+<li id="mr.GET.302">302 Found, GET: <span id="method_302_GET"> </span></li>
+<li id="mr.HEAD.302">302 Found, HEAD: <span id="method_302_HEAD"> </span></li>
+<li id="mr.PUT.302">302 Found, PUT: <span id="method_302_PUT"> </span></li>
+<li id="mr.DELETE.302">302 Found, DELETE: <span id="method_302_DELETE"> </span></li>
+<li id="mr.POST.303">303 See Other, POST: <span id="method_303_POST"> </span></li>
+<li id="mr.GET.303">303 See Other, GET: <span id="method_303_GET"> </span></li>
+<li id="mr.HEAD.303">303 See Other, HEAD: <span id="method_303_HEAD"> </span></li>
+<li id="mr.PUT.303">303 See Other, PUT: <span id="method_303_PUT"> </span></li>
+<li id="mr.DELETE.303">303 See Other, DELETE: <span id="method_303_DELETE"> </span></li>
+<li id="mr.POST.307">307 Temporary Redirect, POST: <span id="method_307_POST"> </span></li>
+<li id="mr.GET.307">307 Temporary Redirect, GET: <span id="method_307_GET"> </span></li>
+<li id="mr.HEAD.307">307 Temporary Redirect, HEAD: <span id="method_307_HEAD"> </span></li>
+<li id="mr.PUT.307">307 Temporary Redirect, PUT: <span id="method_307_PUT"> </span></li>
+<li id="mr.DELETE.307">307 Temporary Redirect, DELETE: <span id="method_307_DELETE"> </span></li>
 </ol>
 <script type="text/javascript">
 function testMethodRedirect(status, orig_method, redir_method, allowGET, test_id) {
